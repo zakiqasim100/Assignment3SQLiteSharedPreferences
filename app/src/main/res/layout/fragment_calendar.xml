@@ -1,0 +1,68 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Month Header -->
+    <TextView
+        android:id="@+id/monthHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="May 2025"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="8dp" />
+
+    <!-- Weekday Labels -->
+    <LinearLayout
+        android:id="@+id/weekDaysRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView android:text="Sun" style="@style/CalendarWeekDayStyle"/>
+        <TextView android:text="Mon" style="@style/CalendarWeekDayStyle"/>
+        <TextView android:text="Tue" style="@style/CalendarWeekDayStyle"/>
+        <TextView android:text="Wed" style="@style/CalendarWeekDayStyle"/>
+        <TextView android:text="Thu" style="@style/CalendarWeekDayStyle"/>
+        <TextView android:text="Fri" style="@style/CalendarWeekDayStyle"/>
+        <TextView android:text="Sat" style="@style/CalendarWeekDayStyle"/>
+    </LinearLayout>
+
+    <!-- Calendar View -->
+    <com.kizitonwose.calendarview.CalendarView
+        android:id="@+id/calendarView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cv_dayViewResource="@layout/calendar_day"
+        app:cv_orientation="vertical"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/selectedDateText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Events on:"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/eventRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/purple_500"/>
+</LinearLayout>

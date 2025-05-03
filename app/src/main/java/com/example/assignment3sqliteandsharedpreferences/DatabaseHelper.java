@@ -3,76 +3,152 @@ package com.example.assignment3sqliteandsharedpreferences;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    public static final String DB_NAME = "TaskApp.db";
+    private static final String DATABASE_NAME = "task_manager.db";
+    private static final int DATABASE_VERSION = 1;
 
-    // Table: Tasks
-    public static final String TASK_TABLE = "Tasks";
-    public static final String COL_ID = "id";
-    public static final String COL_TITLE = "title";
-    public static final String COL_DESC = "description";
-    public static final String COL_DATETIME = "datetime";
-    public static final String COL_STATUS = "status";
+    // Task Table
+    private static final String TABLE_TASKS = "tasks";
+    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_TITLE = "title";
+    private static final String COLUMN_DESC = "description";
+    private static final String COLUMN_DATETIME = "datetime";
+    private static final String COLUMN_STATUS = "status"; // 0 = upcoming, 1 = past
 
-    // Table: Notifications
-    public static final String NOTIF_TABLE = "Notifications";
-    public static final String NOTIF_ID = "id";
-    public static final String NOTIF_MSG = "message";
-    public static final String NOTIF_TIME = "datetime";
+    // Notification Table
+    private static final String TABLE_NOTIFICATIONS = "notifications";
+    private static final String COLUMN_MESSAGE = "message";
 
     public DatabaseHelper(Context context) {
-        super(context, DB_NAME, null, 1);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    // Create tables
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String taskQuery = "CREATE TABLE " + TASK_TABLE + " (" +
-                COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COL_TITLE + " TEXT, " +
-                COL_DESC + " TEXT, " +
-                COL_DATETIME + " TEXT, " +
-                COL_STATUS + " TEXT)";
-        db.execSQL(taskQuery);
+        String createTasksTable = "CREATE TABLE " + TABLE_TASKS + "(" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_TITLE + " TEXT," +
+                COLUMN_DESC + " TEXT," +
+                COLUMN_DATETIME + " TEXT," +
+                COLUMN_STATUS + " INTEGER)";
+        db.execSQL(createTasksTable);
 
-        String notifQuery = "CREATE TABLE " + NOTIF_TABLE + " (" +
-                NOTIF_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                NOTIF_MSG + " TEXT, " +
-                NOTIF_TIME + " TEXT)";
-        db.execSQL(notifQuery);
+        String createNotificationsTable = "CREATE TABLE " + TABLE_NOTIFICATIONS + "(" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_MESSAGE + " TEXT," +
+                COLUMN_DATETIME + " TEXT)";
+        db.execSQL(createNotificationsTable);
     }
 
+    // Handle database upgrades
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TASK_TABLE);
-        db.execSQL("DROP TABLE IF EXISTS " + NOTIF_TABLE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TASKS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTIFICATIONS);
         onCreate(db);
     }
 
-    // Add task method
-    public boolean insertTask(String title, String desc, String datetime, String status) {
+    // Insert task
+    public void insertTask(Task task) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(COL_TITLE, title);
-        cv.put(COL_DESC, desc);
-        cv.put(COL_DATETIME, datetime);
-        cv.put(COL_STATUS, status);
-        long result = db.insert(TASK_TABLE, null, cv);
-        return result != -1;
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TITLE, task.getTitle());
+        values.put(COLUMN_DESC, task.getDescription());
+        values.put(COLUMN_DATETIME, task.getDateTime());
+        values.put(COLUMN_STATUS, task.getStatus());
+        db.insert(TABLE_TASKS, null, values);
+        db.close();
     }
 
-    // Get upcoming tasks
-    public Cursor getUpcomingTasks(String currentTime) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TASK_TABLE + " WHERE datetime(datetime) > datetime(?) ORDER BY datetime ASC", new String[]{currentTime});
+    // Fetch upcoming tasks
+    public List<Task> getUpcomingTasks() {
+        return getTasksByStatus(0);
     }
 
-    // Get past tasks
-    public Cursor getPastTasks(String currentTime) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TASK_TABLE + " WHERE datetime(datetime) <= datetime(?) ORDER BY datetime DESC", new String[]{currentTime});
+    // Fetch past tasks
+    public List<Task> getPastTasks() {
+        return getTasksByStatus(1);
     }
+
+    private List<Task> getTasksByStatus(int status) {
+        List<Task> taskList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_TASKS +
+                " WHERE " + COLUMN_STATUS + " = ?" +
+                " ORDER BY " + COLUMN_DATETIME + (status == 1 ? " DESC" : " ASC");
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(status)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                Task task = new Task();
+                task.setId(cursor.getInt(0));
+                task.setTitle(cursor.getString(1));
+                task.setDescription(cursor.getString(2));
+                task.setDateTime(cursor.getString(3));
+                task.setStatus(cursor.getInt(4));
+                taskList.add(task);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return taskList;
+    }
+
+    // Insert dummy notification
+    public void insertNotification(String message, String datetime) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_MESSAGE, message);
+        values.put(COLUMN_DATETIME, datetime);
+        db.insert(TABLE_NOTIFICATIONS, null, values);
+        db.close();
+    }
+
+    // Get all notifications
+    public List<String> getAllNotifications() {
+        List<String> notifications = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_MESSAGE + " FROM " + TABLE_NOTIFICATIONS, null);
+        if (cursor.moveToFirst()) {
+            do {
+                notifications.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return notifications;
+    }
+
+    public List<Task> getAllTasks() {
+        List<Task> taskList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM tasks", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
+                String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
+                String dateTime = cursor.getString(cursor.getColumnIndexOrThrow("datetime"));
+                int status = cursor.getInt(cursor.getColumnIndexOrThrow("status"));
+
+                Task task = new Task(id, title, description, dateTime, status);
+                taskList.add(task);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return taskList;
+    }
+
 }

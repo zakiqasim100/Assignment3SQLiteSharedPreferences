@@ -10,40 +10,41 @@ import java.util.List;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
-    private List<String[]> taskList;
+    private final List<Task> taskList;
 
-    public TaskAdapter(List<String[]> taskList) {
+    public TaskAdapter(List<Task> taskList) {
         this.taskList = taskList;
-    }
-
-    public static class TaskViewHolder extends RecyclerView.ViewHolder {
-        TextView taskTitle, taskDesc, taskDateTime;
-
-        public TaskViewHolder(@NonNull View itemView) {
-            super(itemView);
-            taskTitle = itemView.findViewById(R.id.taskTitle);
-            taskDesc = itemView.findViewById(R.id.taskDesc);
-            taskDateTime = itemView.findViewById(R.id.taskDateTime);
-        }
     }
 
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_item, parent, false);
-        return new TaskViewHolder(v);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_event, parent, false); // Reusing item_event.xml layout
+        return new TaskViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-        String[] task = taskList.get(position);
-        holder.taskTitle.setText(task[0]);
-        holder.taskDesc.setText(task[1]);
-        holder.taskDateTime.setText(task[2]);
+        Task task = taskList.get(position);
+        holder.titleText.setText(task.getTitle());
+        holder.noteText.setText(task.getDescription());
+        holder.timeText.setText(task.getDateTime());
     }
 
     @Override
     public int getItemCount() {
         return taskList.size();
+    }
+
+    public static class TaskViewHolder extends RecyclerView.ViewHolder {
+        TextView titleText, noteText, timeText;
+
+        public TaskViewHolder(@NonNull View itemView) {
+            super(itemView);
+            titleText = itemView.findViewById(R.id.eventTitle);
+            noteText = itemView.findViewById(R.id.eventNote);
+            timeText = itemView.findViewById(R.id.eventTime);
+        }
     }
 }

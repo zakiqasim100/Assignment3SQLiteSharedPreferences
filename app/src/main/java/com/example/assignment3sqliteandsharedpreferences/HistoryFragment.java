@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-public class ProfileFragment extends Fragment {
+public class HistoryFragment extends Fragment {
 
     @Nullable
     @Override
@@ -15,7 +15,7 @@ public class ProfileFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         TextView textView = new TextView(getContext());
-        textView.setText("Profile Page");
+        textView.setText("History Page");
         textView.setTextSize(24);
         textView.setGravity(Gravity.CENTER);
         return textView;
