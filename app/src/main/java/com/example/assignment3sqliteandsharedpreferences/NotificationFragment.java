@@ -3,6 +3,7 @@ package com.example.assignment3sqliteandsharedpreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.*;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -31,11 +32,16 @@ public class NotificationFragment extends Fragment {
         simulateNotificationsIfEmpty(); // One-time dummy insertion
         loadNotifications();
 
+        if (notificationList.isEmpty()) {
+            Toast.makeText(getContext(), "No notifications found", Toast.LENGTH_SHORT).show();
+        }
+
         adapter = new NotificationAdapter(notificationList);
         notificationRecyclerView.setAdapter(adapter);
 
         return view;
     }
+
 
     private void simulateNotificationsIfEmpty() {
         Cursor cursor = db.getReadableDatabase().rawQuery("SELECT COUNT(*) FROM Notifications", null);
